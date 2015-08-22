@@ -184,10 +184,10 @@ var WidgetJS = (function($){
          * Вызов дейсвтия у родителей
          * @param name Название действия (функции)
          * @param args Массив аргументов
-         * @param target Объект, иницировавший вызов действия. По умолчанию this.
          * @param up Признак, когда вызов дойдет до корневого объекты, перенаправить вызов всем подчиненным.
+         * @param target Объект, иницировавший вызов действия. По умолчанию this.         *
          */
-        emit: function(name, args, target, up){
+        emit: function(name, args, up, target){
             if (!target) target = null;
             var stop = undefined;
             if (!up && target){
@@ -201,10 +201,10 @@ var WidgetJS = (function($){
                 return stop;
             }else
             if (this._parent){
-                return this._parent.emit(name, args, target || this, up);
+                return this._parent.emit(name, args, up, target || this);
             }else
             if (up){
-                return this.emit(name, args, target);
+                return this.broadcast(name, args, target);
             }
             return undefined;
         },
