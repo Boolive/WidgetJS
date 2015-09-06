@@ -31,11 +31,11 @@ if (typeof Object.create != 'function') {
 var WidgetJS = (function($){
     var classes = {};
     var oldClean = $.cleanData;
-    $.cleanData = function( elems ) {
-        for ( var i = 0, elem; (elem = elems[i]) !== undefined; i++ ) {
+    $.cleanData = function(elements) {
+        for ( var i = 0, elem; (elem = elements[i]) !== undefined; i++ ) {
             if (elem.widget) elem.widget.destroy();
         }
-        oldClean(elems);
+        oldClean(elements);
     };
 
     $(document).ready(function(){
@@ -131,6 +131,8 @@ var WidgetJS = (function($){
 
         _children: undefined,
 
+        on: {},
+
         create: function () {
             var self = this;
             this._children = {};
@@ -147,6 +149,7 @@ var WidgetJS = (function($){
 
             console.log(this/* instanceof WidgetJS.getClass('Widget')*/);
         },
+
         destroy: function () {
             // Сообщаем родителю о своём удалении
             this.$element.trigger('_destroy', [this]);
@@ -154,19 +157,15 @@ var WidgetJS = (function($){
             console.log('destroy: ' + this.name);
         },
         /**
-         * Вызов дейсвтия у подчиненных
-         * @param name Название действия (функции)
+         * Событие для подчиенных
+         * @param name Название события (функции)
          * @param args Массив аргументов
          * @param target Объект, иницировавший вызов действия. По умолчанию this
          */
         broadcast: function(name, args, target){
             var stop = undefined;
             if (target){
-                if ($.isFunction(this['on_'+name])){
-                    if (!$.isArray(args)) args = [args];
-                    var a = [{target: target, type: 'broadcast'}].concat(args);
-                    stop = this['on_'+name].apply(this, a);
-                }
+                stop = this.trigger(name, args);
             }
             if (stop !== undefined){
                 return stop;
@@ -181,21 +180,17 @@ var WidgetJS = (function($){
             return result.length? result : undefined;
         },
         /**
-         * Вызов дейсвтия у родителей
-         * @param name Название действия (функции)
+         * Событие для родителей
+         * @param name Название события (функции)
          * @param args Массив аргументов
-         * @param up Признак, когда вызов дойдет до корневого объекты, перенаправить вызов всем подчиненным.
+         * @param up Признак, когда вызов дойдет до корневого объекты, вызвать событие всем подчиненным?
          * @param target Объект, иницировавший вызов действия. По умолчанию this.         *
          */
         emit: function(name, args, up, target){
             if (!target) target = null;
             var stop = undefined;
             if (!up && target){
-                if ($.isFunction(this['on_'+name])){
-                    if (!$.isArray(args)) args = [args];
-                    var a = [{target: target, type: 'emit'}].concat(args);
-                    stop = this['on_'+name].apply(this, a);
-                }
+                stop = this.trigger(name, args);
             }
             if (stop !== undefined){
                 return stop;
@@ -207,6 +202,20 @@ var WidgetJS = (function($){
                 return this.broadcast(name, args, target);
             }
             return undefined;
+        },
+        /**
+         * Внутреннее событие
+         * @param name
+         * @param args
+         * @returns {undefined}
+         */
+        trigger: function(name, args){
+            var stop = undefined;
+            if ($.isFunction(this.on[name])){
+                if (!$.isArray(args)) args = [args];
+                stop = this.on[name].apply(this, args);
+            }
+            return stop;
         },
         /**
          * Добавление подчиненного виджета
