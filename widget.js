@@ -70,11 +70,11 @@ var WidgetJS = (function($){
             prototype.name = name;
             for (var prop in object) {
                 if (object.hasOwnProperty(prop)) {
-                    if (typeof object[prop] === 'function') {
+                    //if (typeof object[prop] === 'function') {
                         prototype[prop] = object[prop]
-                    } else {
-                        obj[prop] = object[prop];
-                    }
+                    //} else {
+                    //    obj[prop] = object[prop];
+                    //}
                 }
             }
 
